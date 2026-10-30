@@ -31,5 +31,7 @@ def add_header(response):
 from routes import *
 if __name__ == '_main_':
     with app.app_context():
-        db.create_all()
-    app.run(debug=True)
+        db.create_all()   #buat tabel otmts
+        #render akan memberikan port otmts, kl di lptp ttp 5000
+    port = int(os.environ.get("PORT", 5000))
+    app.run(host='0.0.0.0', port=port)
