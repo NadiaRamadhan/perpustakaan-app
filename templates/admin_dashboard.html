@@ -1,0 +1,240 @@
+{% extends 'base.html' %} {% block content %}
+<h2 class="mb-4">🛡️ Dashboard Admin</h2>
+
+<!-- STATISTIK RINGKAS -->
+<div class="row mb-4">
+  <div class="col-md-3 mb-3">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <div style="font-size: 40px">📚</div>
+        <h3 class="mb-0">{{ total_buku }}</h3>
+        <small class="text-muted">Judul Buku</small>
+        <p class="mb-0 mt-2">
+          <small>Total stok: <strong>{{ total_stok }}</strong></small>
+        </p>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <div style="font-size: 40px">👥</div>
+        <h3 class="mb-0">{{ total_user }}</h3>
+        <small class="text-muted">User Terdaftar</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <div style="font-size: 40px">📖</div>
+        <h3 class="mb-0" style="color: #f0ad4e">{{ total_pinjam_aktif }}</h3>
+        <small class="text-muted">Sedang Dipinjam</small>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-3 mb-3">
+    <div class="card h-100">
+      <div class="card-body text-center">
+        <div style="font-size: 40px">✅</div>
+        <h3 class="mb-0" style="color: #28a745">{{ total_dikembalikan }}</h3>
+        <small class="text-muted">Sudah Dikembalikan</small>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- GRAFIK STATISTIK -->
+<div class="row mb-4">
+  <div class="col-md-7 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">📈 Top 5 Buku Paling Dipinjam</h5>
+        <canvas id="chartTopBuku" height="150"></canvas>
+      </div>
+    </div>
+  </div>
+  <div class="col-md-5 mb-3">
+    <div class="card h-100">
+      <div class="card-body">
+        <h5 class="card-title mb-3">📂 Buku per Kategori</h5>
+        <canvas id="chartKategori" height="200"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<div class="row mb-4">
+  <div class="col-12">
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title mb-3">📅 Peminjaman 6 Bulan Terakhir</h5>
+        <canvas id="chartBulanan" height="80"></canvas>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- FILTER -->
+<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+  <h4 class="mb-0">Riwayat Peminjaman</h4>
+  <div class="btn-group">
+    <a href="/admin/dashboard" class="btn btn-sm {% if not status_filter %}btn-primary{% else %}btn-outline-primary{% endif %}"> Semua </a>
+    <a href="/admin/dashboard?status=dipinjam" class="btn btn-sm {% if status_filter == 'dipinjam' %}btn-primary{% else %}btn-outline-primary{% endif %}"> Dipinjam </a>
+    <a href="/admin/dashboard?status=dikembalikan" class="btn btn-sm {% if status_filter == 'dikembalikan' %}btn-primary{% else %}btn-outline-primary{% endif %}"> Dikembalikan </a>
+    <a href="/admin/dashboard?status=terlambat" class="btn btn-sm {% if status_filter == 'terlambat' %}btn-primary{% else %}btn-outline-primary{% endif %}"> ⚠️ Terlambat </a>
+  </div>
+</div>
+
+<!-- TABEL -->
+<div class="table-responsive">
+  <table class="table table-striped">
+    <thead>
+      <tr>
+        <th>#</th>
+        <th>User</th>
+        <th>Buku</th>
+        <th>Tgl Pinjam</th>
+        <th>Batas Kembali</th>
+        <th>Status</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for p in semua_peminjaman %}
+      <tr>
+        <td>{{ p.id }}</td>
+        <td>{{ p.user.username }}</td>
+        <td>{{ p.buku.judul }}</td>
+        <td>{{ p.tanggal_pinjam.strftime('%d-%m-%Y') }}</td>
+        <td>{{ p.tanggal_kembali.strftime('%d-%m-%Y') }}</td>
+        <td>
+          {% if p.status == 'dipinjam' %} {% if p.tanggal_kembali < now %} <span class="badge bg-danger">⚠️ Terlambat</span>
+          {% else %}
+          <span class="badge bg-warning">Dipinjam</span>
+          {% endif %} {% else %}
+          <span class="badge bg-success">Dikembalikan</span>
+          {% endif %}
+        </td>
+      </tr>
+      {% else %}
+      <tr>
+        <td colspan="6" class="text-center text-muted">Tidak ada data peminjaman.</td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+</div>
+
+<!-- Chart.js -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+
+<script>
+  // Pengaturan warna tema aurora
+  Chart.defaults.color = '#e0e6f0';
+  Chart.defaults.borderColor = 'rgba(64, 224, 208, 0.2)';
+  Chart.defaults.font.family = "'Segoe UI', sans-serif";
+
+  // 1. Bar Chart - Top 5 Buku
+  const ctxTop = document.getElementById('chartTopBuku').getContext('2d');
+  new Chart(ctxTop, {
+      type: 'bar',
+      data: {
+      labels: {{ top_buku_labels| tojson }},
+      datasets: [{
+          label: 'Jumlah Peminjaman',
+          data: {{ top_buku_data| tojson }},
+      backgroundColor: [
+          'rgba(64, 224, 208, 0.7)',
+          'rgba(138, 43, 226, 0.7)',
+          'rgba(30, 144, 255, 0.7)',
+          'rgba(50, 205, 50, 0.7)',
+          'rgba(255, 215, 0, 0.7)'
+      ],
+      borderColor: [
+          '#40e0d0', '#8a2be2', '#1e90ff', '#32cd32', '#ffd700'
+      ],
+      borderWidth: 2,
+      borderRadius: 8
+          }]
+      },
+      options: {
+      responsive: true,
+      plugins: {
+          legend: { display: false }
+      },
+      scales: {
+          y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 }
+          }
+      }
+  }
+  });
+
+  // 2. Doughnut Chart - Buku per Kategori
+  const ctxKat = document.getElementById('chartKategori').getContext('2d');
+  new Chart(ctxKat, {
+      type: 'doughnut',
+      data: {
+          labels: {{ kategori_labels| tojson }},
+      datasets: [{
+          data: {{ kategori_data| tojson }},
+      backgroundColor: [
+          'rgba(64, 224, 208, 0.8)',
+          'rgba(138, 43, 226, 0.8)',
+          'rgba(30, 144, 255, 0.8)',
+          'rgba(50, 205, 50, 0.8)',
+          'rgba(255, 215, 0, 0.8)',
+          'rgba(255, 69, 0, 0.8)',
+          'rgba(255, 105, 180, 0.8)'
+      ],
+      borderColor: '#0a0e1a',
+      borderWidth: 2
+          }]
+      },
+      options: {
+      responsive: true,
+      plugins: {
+          legend: {
+              position: 'bottom',
+              labels: { padding: 15, boxWidth: 12 }
+          }
+      }
+  }
+  });
+
+  // 3. Line Chart - Peminjaman per Bulan
+  const ctxBulan = document.getElementById('chartBulanan').getContext('2d');
+  new Chart(ctxBulan, {
+      type: 'line',
+      data: {
+          labels: {{ bulan_labels| tojson }},
+      datasets: [{
+          label: 'Jumlah Peminjaman',
+          data: {{ bulan_data| tojson }},
+      borderColor: '#40e0d0',
+      backgroundColor: 'rgba(64, 224, 208, 0.2)',
+      borderWidth: 3,
+      tension: 0.4,
+      fill: true,
+      pointBackgroundColor: '#8a2be2',
+      pointBorderColor: '#40e0d0',
+      pointRadius: 6,
+      pointHoverRadius: 9
+          }]
+      },
+      options: {
+      responsive: true,
+      plugins: {
+          legend: { display: false }
+      },
+      scales: {
+          y: {
+              beginAtZero: true,
+              ticks: { stepSize: 1 }
+          }
+      }
+  }
+  });
+</script>
+{% endblock %}

@@ -1,0 +1,9 @@
+venv/
+__pycache__/
+instance/
+*.db
+*.pyc
+.vscode/
+.env
+static/uploads/pdf/*
+!static/uploads/pdf/.gitkeep

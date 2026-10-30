@@ -1,0 +1,49 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<h2>Dashboard Saya</h2>
+<p class="text-muted">Halo {{ current_user.username }}, ini riwayat peminjamanmu.</p>
+
+<h4 class="mt-4">Riwayat Peminjaman</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Buku</th>
+            <th>Tanggal Pinjam</th>
+            <th>Batas Kembali</th>
+            <th>Status</th>
+            <th>Aksi</th>
+        </tr>
+    </thead>
+    <tbody>
+        {% for p in peminjaman %}
+        <tr>
+            <td>{{ p.buku.judul }}</td>
+            <td>{{ p.tanggal_pinjam.strftime('%d-%m-%Y') }}</td>
+            <td>{{ p.tanggal_kembali.strftime('%d-%m-%Y') }}</td>
+            <td>
+                {% if p.status == 'dipinjam' %}
+                <span class="badge bg-warning">Dipinjam</span>
+                {% else %}
+                <span class="badge bg-success">Dikembalikan</span>
+                {% endif %}
+            </td>
+            <td>
+                {% if p.status == 'dipinjam' %}
+                <form method="POST" action="/kembalikan/{{ p.id }}" style="display:inline;">
+                    <button class="btn btn-sm btn-outline-primary">Kembalikan</button>
+                </form>
+                {% else %}
+                <a href="/rating/{{ p.buku_id }}" class="btn btn-sm btn-outline-warning">⭐ Beri Rating</a>
+                {% endif %}
+                <a href="/struk/{{ p.id }}" target="_blank" class="btn btn-sm btn-outline-secondary">🖨️ Struk</a>
+            </td>
+        </tr>
+        {% else %}
+        <tr>
+            <td colspan="5" class="text-center">Belum ada peminjaman.</td>
+        </tr>
+        {% endfor %}
+    </tbody>
+</table>
+{% endblock %}

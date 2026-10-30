@@ -1,0 +1,50 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row">
+    <div class="col-md-8">
+        <a href="/" class="btn btn-outline-secondary btn-sm mb-3">← Kembali</a>
+        <h2>{{ buku.judul }}</h2>
+        <p class="text-muted">oleh <strong>{{ buku.penulis }}</strong> | Kategori: {{ buku.kategori }}</p>
+        <p>{{ buku.deskripsi }}</p>
+        <p><strong>Stok tersedia:</strong> {{ buku.stok_tersedia }} dari {{ buku.stok_total }}</p>
+        <p><strong>Rating rata-rata:</strong> ⭐ {{ "%.1f"|format(rata_rata) }} / 5.0 ({{ ratings|length }} ulasan)</p>
+
+        {% if current_user.is_authenticated %}
+        {% if buku.stok_tersedia > 0 %}
+        <form method="POST" action="/pinjam/{{ buku.id }}" style="display:inline;">
+            <button type="submit" class="btn btn-success">📖 Pinjam Buku Ini</button>
+        </form>
+        {% else %}
+        <button class="btn btn-secondary" disabled>Stok Habis</button>
+        {% endif %}
+
+        {% if buku.file_pdf %}
+        <a href="/baca/{{ buku.id }}" class="btn btn-info">📄 Baca Buku (PDF)</a>
+        {% endif %}
+        {% if current_user.role == 'admin' %}
+        <form method="POST" action="/admin/hapus-buku/{{ buku.id }}"
+            onsubmit="return confirm('Yakin mau hapus buku ini? Data peminjaman & rating juga akan terhapus.');"
+            style="display:inline;">
+            <button type="submit" class="btn btn-danger">🗑️ Hapus Buku</button>
+        </form>
+        {% endif %}
+        {% else %}
+        <a href="/login" class="btn btn-primary">Login untuk Meminjam</a>
+        {% endif %}
+    </div>
+</div>
+
+<hr class="my-4">
+<h4>Ulasan Pembaca</h4>
+{% for r in ratings %}
+<div class="card mb-2">
+    <div class="card-body">
+        <strong>{{ r.user.username }}</strong> — ⭐ {{ r.bintang }}/5
+        <p class="mb-0">{{ r.ulasan }}</p>
+    </div>
+</div>
+{% else %}
+<p class="text-muted">Belum ada ulasan.</p>
+{% endfor %}
+{% endblock %}
