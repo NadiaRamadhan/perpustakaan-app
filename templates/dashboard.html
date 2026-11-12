@@ -1,49 +1,68 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<h2>Dashboard Saya</h2>
-<p class="text-muted">Halo {{ current_user.username }}, ini riwayat peminjamanmu.</p>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Dashboard Saya</h3>
+        <p class="text-muted mb-0">Halo <strong>{{ current_user.username }}</strong>, ini riwayat peminjamanmu.</p>
+    </div>
+</div>
 
-<h4 class="mt-4">Riwayat Peminjaman</h4>
-<table class="table table-striped">
-    <thead>
-        <tr>
-            <th>Buku</th>
-            <th>Tanggal Pinjam</th>
-            <th>Batas Kembali</th>
-            <th>Status</th>
-            <th>Aksi</th>
-        </tr>
-    </thead>
-    <tbody>
-        {% for p in peminjaman %}
-        <tr>
-            <td>{{ p.buku.judul }}</td>
-            <td>{{ p.tanggal_pinjam.strftime('%d-%m-%Y') }}</td>
-            <td>{{ p.tanggal_kembali.strftime('%d-%m-%Y') }}</td>
-            <td>
-                {% if p.status == 'dipinjam' %}
-                <span class="badge bg-warning">Dipinjam</span>
+<div class="card shadow-sm border-0 p-3">
+    <div class="table-responsive">
+        <table class="table table-hover align-middle mb-0">
+            <thead class="table-light">
+                <tr>
+                    <th>Buku</th>
+                    <th>Tgl Pinjam</th>
+                    <th>Batas Kembali</th>
+                    <th>Status</th>
+                    <th class="text-center">Aksi</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for p in peminjaman %}
+                <tr>
+                    <td>
+                        <strong class="text-primary">{{ p.buku.judul }}</strong>
+                    </td>
+                    <td>{{ p.tanggal_pinjam.strftime('%d-%m-%Y') }}</td>
+                    <td>
+                        {% if p.status == 'dipinjam' and p.tanggal_kembali < now %} <span class="text-danger fw-bold">{{
+                            p.tanggal_kembali.strftime('%d-%m-%Y') }} (Terlambat)</span>
+                            {% else %}
+                            {{ p.tanggal_kembali.strftime('%d-%m-%Y') }}
+                            {% endif %}
+                    </td>
+                    <td>
+                        {% if p.status == 'dipinjam' %}
+                        <span class="badge bg-warning text-dark">Dipinjam</span>
+                        {% else %}
+                        <span class="badge bg-success">Dikembalikan</span>
+                        {% endif %}
+                    </td>
+                    <td class="text-center">
+                        {% if p.status == 'dipinjam' %}
+                        <form method="POST" action="/kembalikan/{{ p.id }}" style="display:inline;">
+                            <button class="btn btn-sm btn-outline-primary">Kembalikan</button>
+                        </form>
+                        {% else %}
+                        <a href="/rating/{{ p.buku_id }}" class="btn btn-sm btn-outline-warning">⭐ Beri Rating</a>
+                        {% endif %}
+                        <a href="/struk/{{ p.id }}" target="_blank" class="btn btn-sm btn-outline-secondary">🖨️
+                            Struk</a>
+                    </td>
+                </tr>
                 {% else %}
-                <span class="badge bg-success">Dikembalikan</span>
-                {% endif %}
-            </td>
-            <td>
-                {% if p.status == 'dipinjam' %}
-                <form method="POST" action="/kembalikan/{{ p.id }}" style="display:inline;">
-                    <button class="btn btn-sm btn-outline-primary">Kembalikan</button>
-                </form>
-                {% else %}
-                <a href="/rating/{{ p.buku_id }}" class="btn btn-sm btn-outline-warning">⭐ Beri Rating</a>
-                {% endif %}
-                <a href="/struk/{{ p.id }}" target="_blank" class="btn btn-sm btn-outline-secondary">🖨️ Struk</a>
-            </td>
-        </tr>
-        {% else %}
-        <tr>
-            <td colspan="5" class="text-center">Belum ada peminjaman.</td>
-        </tr>
-        {% endfor %}
-    </tbody>
-</table>
+                <tr>
+                    <td colspan="5" class="text-center py-4 text-muted">
+                        Belum ada riwayat peminjaman. <a href="/" class="fw-bold text-decoration-none">Cari buku
+                            yuk!</a>
+                    </td>
+                </tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    </div>
+</div>
 {% endblock %}

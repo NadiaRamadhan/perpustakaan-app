@@ -1,37 +1,55 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
-    <div class="col-md-6">
-        <h3 class="mb-4">Tambah Buku Baru</h3>
-        <form method="POST" enctype="multipart/form-data" autocomplete="off">
-            <div class="mb-3">
-                <label>Judul</label>
-                <input type="text" name="judul" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label>Penulis</label>
-                <input type="text" name="penulis" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label>Kategori</label>
-                <input type="text" name="kategori" class="form-control">
-            </div>
-            <div class="mb-3">
-                <label>Deskripsi</label>
-                <textarea name="deskripsi" class="form-control" rows="3"></textarea>
-            </div>
-            <div class="mb-3">
-                <label>Stok</label>
-                <input type="number" name="stok" class="form-control" value="1" min="1" required>
-            </div>
-            <div class="mb-3">
-                <label>File PDF Buku (opsional)</label>
-                <input type="file" name="file_pdf" class="form-control" accept=".pdf">
-                <small class="text-muted">Format: PDF. Maksimal 100 MB.</small>
-            </div>
-            <button type="submit" class="btn btn-success w-100">Simpan Buku</button>
-        </form>
+<div class="row justify-content-center mb-5 mt-3">
+    <div class="col-md-6 col-lg-5"> <!-- Dibuat lebih ramping -->
+        <div class="card p-4 shadow-sm border-0">
+            <h4 class="mb-4 fw-bold text-center text-primary">➕ Tambah Buku</h4>
+
+            <form method="POST" enctype="multipart/form-data" autocomplete="off">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Judul Buku</label>
+                    <input type="text" name="judul" class="form-control form-control-sm" required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Penulis</label>
+                    <input type="text" name="penulis" class="form-control form-control-sm" required>
+                </div>
+
+                <div class="row">
+                    <div class="col-8 mb-3">
+                        <label class="form-label text-muted small fw-bold">Kategori</label>
+                        <input type="text" name="kategori" class="form-control form-control-sm"
+                            placeholder="Fiksi, Sains, dll">
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label text-muted small fw-bold">Stok</label>
+                        <input type="number" name="stok" class="form-control form-control-sm" value="1" min="1"
+                            required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Deskripsi</label>
+                    <textarea name="deskripsi" class="form-control form-control-sm" rows="3"
+                        placeholder="Sinopsis singkat..."></textarea>
+                </div>
+
+                <div class="row p-2 bg-light rounded mb-4 mx-0 border">
+                    <div class="col-6 mb-2 mt-2">
+                        <label class="form-label text-muted small fw-bold">🖼️ Cover</label>
+                        <input type="file" name="cover" class="form-control form-control-sm" accept="image/*">
+                    </div>
+                    <div class="col-6 mb-2 mt-2">
+                        <label class="form-label text-muted small fw-bold">📄 File PDF</label>
+                        <input type="file" name="file_pdf" class="form-control form-control-sm" accept=".pdf">
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold" style="font-size: 14px;">Simpan
+                    Buku</button>
+            </form>
+        </div>
     </div>
 </div>
 {% endblock %}

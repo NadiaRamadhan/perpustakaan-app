@@ -213,8 +213,23 @@ def tambah_buku():
                 safe_name = secure_filename(file.filename)
                 file_pdf_name = f"{timestamp}_{safe_name}"
                 file.save(os.path.join(app.config['UPLOAD_FOLDER'], file_pdf_name))
+
+        # Handle upload Cover Gambar
+        cover_name = None
+        file_cover = request.files.get('cover')
+        if file_cover and file_cover.filename != '':
+            # Pastikan yang diupload adalah gambar
+            allowed_ext = {'png', 'jpg', 'jpeg', 'webp'}
+            ext = file_cover.filename.rsplit('.', 1)[1].lower()
+            if ext in allowed_ext:
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                safe_name = secure_filename(file_cover.filename)
+                cover_name = f"{timestamp}_{safe_name}"
+                # Simpan ke folder static/uploads/cover
+                file_cover.save(os.path.join('static', 'uploads', 'cover', cover_name))
+
             else:
-                flash('Hanya file PDF yang diperbolehkan!', 'danger')
+                flash('Format cover harus berupa gambar (PNG/JPG)!', 'danger')
                 return redirect(url_for('tambah_buku'))
 
         buku = Buku(
@@ -224,7 +239,8 @@ def tambah_buku():
             deskripsi=deskripsi,
             stok_total=stok,
             stok_tersedia=stok,
-            file_pdf=file_pdf_name
+            file_pdf=file_pdf_name,
+            cover=cover_name
         )
         db.session.add(buku)
         db.session.commit()
@@ -446,3 +462,65 @@ def admin_dashboard():
                         kategori_data=kategori_data,
                         bulan_labels=bulan_labels,
                         bulan_data=bulan_data)
+
+# ---------- ADMIN: EDIT BUKU ----------
+@app.route('/admin/edit-buku/<int:buku_id>', methods=['GET', 'POST'])
+@login_required
+def edit_buku(buku_id):
+    if current_user.role != 'admin':
+        flash('Akses ditolak.', 'danger')
+        return redirect(url_for('index'))
+
+    buku = Buku.query.get_or_404(buku_id)
+
+    if request.method == 'POST':
+        buku.judul = request.form['judul']
+        buku.penulis = request.form['penulis']
+        buku.kategori = request.form['kategori']
+        buku.deskripsi = request.form['deskripsi']
+        buku.stok_total = int(request.form['stok'])
+        
+        # Logika Update Stok (supaya stok tersedia menyesuaikan)
+        # Jika stok total dikurangi, stok tersedia juga harus disesuaikan
+        selisih_stok = int(request.form['stok']) - buku.stok_total
+        buku.stok_tersedia += selisih_stok
+        
+        # Update Cover (Jika user upload gambar baru)
+        file_cover = request.files.get('cover')
+        if file_cover and file_cover.filename != '':
+            allowed_ext = {'png', 'jpg', 'jpeg', 'webp'}
+            ext = file_cover.filename.rsplit('.', 1)[1].lower()
+            if ext in allowed_ext:
+                # Hapus file cover lama jika ada
+                if buku.cover:
+                    old_cover_path = os.path.join('static', 'uploads', 'cover', buku.cover)
+                    if os.path.exists(old_cover_path):
+                        os.remove(old_cover_path)
+                
+                # Simpan file cover baru
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                safe_name = secure_filename(file_cover.filename)
+                buku.cover = f"{timestamp}_{safe_name}"
+                file_cover.save(os.path.join('static', 'uploads', 'cover', buku.cover))
+
+        # Update PDF (Jika user upload PDF baru)
+        file_pdf = request.files.get('file_pdf')
+        if file_pdf and file_pdf.filename != '':
+            if file_pdf.filename.endswith('.pdf'):
+                # Hapus PDF lama jika ada
+                if buku.file_pdf:
+                    old_pdf_path = os.path.join(app.config['UPLOAD_FOLDER'], buku.file_pdf)
+                    if os.path.exists(old_pdf_path):
+                        os.remove(old_pdf_path)
+                
+                # Simpan PDF baru
+                timestamp = datetime.now().strftime('%Y%m%d%H%M%S')
+                safe_name = secure_filename(file_pdf.filename)
+                buku.file_pdf = f"{timestamp}_{safe_name}"
+                file_pdf.save(os.path.join(app.config['UPLOAD_FOLDER'], buku.file_pdf))
+
+        db.session.commit()
+        flash('Buku berhasil diupdate!', 'success')
+        return redirect(url_for('detail_buku', buku_id=buku.id))
+
+    return render_template('edit_buku.html', buku=buku)

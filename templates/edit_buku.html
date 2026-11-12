@@ -1,0 +1,62 @@
+{% extends 'base.html' %}
+
+{% block content %}
+<div class="row justify-content-center mb-5 mt-3">
+    <div class="col-md-6 col-lg-5">
+        <div class="card p-4 shadow-sm border-0">
+            <h4 class="mb-4 fw-bold text-center text-warning">✏️ Edit Buku</h4>
+
+            <form method="POST" enctype="multipart/form-data" autocomplete="off">
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Judul Buku</label>
+                    <input type="text" name="judul" class="form-control form-control-sm" value="{{ buku.judul }}"
+                        required>
+                </div>
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Penulis</label>
+                    <input type="text" name="penulis" class="form-control form-control-sm" value="{{ buku.penulis }}"
+                        required>
+                </div>
+
+                <div class="row">
+                    <div class="col-8 mb-3">
+                        <label class="form-label text-muted small fw-bold">Kategori</label>
+                        <input type="text" name="kategori" class="form-control form-control-sm"
+                            value="{{ buku.kategori }}">
+                    </div>
+                    <div class="col-4 mb-3">
+                        <label class="form-label text-muted small fw-bold">Stok Total</label>
+                        <input type="number" name="stok" class="form-control form-control-sm"
+                            value="{{ buku.stok_total }}" min="1" required>
+                    </div>
+                </div>
+
+                <div class="mb-3">
+                    <label class="form-label text-muted small fw-bold">Deskripsi</label>
+                    <textarea name="deskripsi" class="form-control form-control-sm"
+                        rows="3">{{ buku.deskripsi }}</textarea>
+                </div>
+
+                <div class="row p-2 bg-light rounded mb-4 mx-0 border">
+                    <div class="col-6 mb-2 mt-2">
+                        <label class="form-label text-muted small fw-bold">🖼️ Ganti Cover</label>
+                        <input type="file" name="cover" class="form-control form-control-sm" accept="image/*">
+                        {% if buku.cover %}<small class="text-success" style="font-size:10px;">✓ Cover sudah
+                            ada</small>{% endif %}
+                    </div>
+                    <div class="col-6 mb-2 mt-2">
+                        <label class="form-label text-muted small fw-bold">📄 Ganti PDF</label>
+                        <input type="file" name="file_pdf" class="form-control form-control-sm" accept=".pdf">
+                        {% if buku.file_pdf %}<small class="text-success" style="font-size:10px;">✓ PDF sudah
+                            ada</small>{% endif %}
+                    </div>
+                </div>
+
+                <button type="submit" class="btn btn-warning text-dark w-100 py-2 fw-bold"
+                    style="font-size: 14px;">Update Buku</button>
+                <a href="/buku/{{ buku.id }}" class="btn btn-light w-100 mt-2" style="font-size: 14px;">Batal</a>
+            </form>
+        </div>
+    </div>
+</div>
+{% endblock %}

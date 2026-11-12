@@ -1,62 +1,70 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
-    <h2 class="mb-0">Daftar Buku</h2>
-    <small class="text-muted">{{ buku_list|length }} buku ditemukan</small>
+<div class="d-flex justify-content-between align-items-center mb-4">
+    <div>
+        <h3 class="fw-bold mb-1">Katalog Buku</h3>
+        <p class="text-muted mb-0">Temukan buku favoritmu dan mulai membaca.</p>
+    </div>
+    <span class="badge bg-secondary">{{ buku_list|length }} Buku</span>
 </div>
 
-<!-- FORM SEARCH & FILTER -->
-<form method="GET" action="/" class="mb-4">
+<!-- Form Pencarian -->
+<form method="GET" action="/" class="mb-5">
     <div class="row g-2">
-        <div class="col-md-6">
-            <input type="text" name="q" class="form-control" placeholder="🔍 Cari judul atau penulis..."
+        <div class="col-md-5">
+            <input type="text" name="q" class="form-control form-control-lg" placeholder="Cari judul atau penulis..."
                 value="{{ q }}">
         </div>
         <div class="col-md-4">
-            <select name="kategori" class="form-select">
+            <select name="kategori" class="form-select form-select-lg">
                 <option value="">Semua Kategori</option>
                 {% for k in semua_kategori %}
-                <option value="{{ k }}" {% if k==kategori_terpilih %}selected{% endif %}>
-                    {{ k }}
-                </option>
+                <option value="{{ k }}" {% if k==kategori_terpilih %}selected{% endif %}>{{ k }}</option>
                 {% endfor %}
             </select>
         </div>
-        <div class="col-md-2">
-            <button type="submit" class="btn btn-primary w-100">Cari</button>
+        <div class="col-md-3">
+            <button type="submit" class="btn btn-primary btn-lg w-100">Cari Buku</button>
         </div>
     </div>
     {% if q or kategori_terpilih %}
     <div class="mt-2">
-        <a href="/" class="btn btn-sm btn-outline-secondary">✕ Reset Pencarian</a>
+        <a href="/" class="text-decoration-none small">✕ Hapus Filter</a>
     </div>
     {% endif %}
 </form>
 
-<!-- HASIL -->
-<div class="row">
+<!-- Grid Buku -->
+<div class="row row-cols-2 row-cols-md-3 row-cols-lg-5 g-4">
     {% for buku in buku_list %}
-    <div class="col-md-4 mb-4">
-        <div class="card h-100 shadow-sm">
-            <div class="card-body">
-                <h5 class="card-title">{{ buku.judul }}</h5>
-                <p class="text-muted">oleh {{ buku.penulis }}</p>
-                <span class="badge bg-secondary">{{ buku.kategori }}</span>
-                <p class="mt-2">Stok: {{ buku.stok_tersedia }} / {{ buku.stok_total }}</p>
-                <a href="/buku/{{ buku.id }}" class="btn btn-primary btn-sm">Lihat Detail</a>
+    <div class="col">
+        <a href="/buku/{{ buku.id }}" class="text-decoration-none text-dark">
+            <div class="card h-100">
+                <!-- Bagian Cover Buku -->
+                {% if buku.cover %}
+                <img src="/static/uploads/cover/{{ buku.cover }}" class="card-img-top" alt="{{ buku.judul }}">
+                {% else %}
+                <!-- Tampilan default jika tidak ada cover (seperti buku kosong) -->
+                <div class="card-img-top d-flex align-items-center justify-content-center bg-light text-secondary">
+                    <span style="font-size: 40px;">📖</span>
+                </div>
+                {% endif %}
+
+                <div class="card-body p-3">
+                    <h6 class="card-title fw-bold mb-1 text-truncate" title="{{ buku.judul }}">{{ buku.judul }}</h6>
+                    <p class="card-text text-muted small mb-2 text-truncate">{{ buku.penulis }}</p>
+                    <div class="d-flex justify-content-between align-items-center">
+                        <span class="badge bg-light text-dark border">{{ buku.kategori }}</span>
+                        <small class="text-muted">Stok: {{ buku.stok_tersedia }}</small>
+                    </div>
+                </div>
             </div>
-        </div>
+        </a>
     </div>
     {% else %}
-    <div class="col-12">
-        <div class="alert alert-info text-center">
-            {% if q or kategori_terpilih %}
-            Tidak ada buku yang cocok dengan pencarian "<strong>{{ q }}</strong>".
-            {% else %}
-            Belum ada buku di perpustakaan. Yuk tambah buku dulu!
-            {% endif %}
-        </div>
+    <div class="col-12 text-center py-5">
+        <h4 class="text-muted">Buku tidak ditemukan.</h4>
     </div>
     {% endfor %}
 </div>

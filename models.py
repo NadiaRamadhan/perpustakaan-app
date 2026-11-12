@@ -24,6 +24,7 @@ class Buku(db.Model):
     stok_total = db.Column(db.Integer, default=0)
     stok_tersedia = db.Column(db.Integer, default=0)
     file_pdf = db.Column(db.String(200))
+    cover = db.Column(db.String(200))
     peminjaman = db.relationship('Peminjaman', backref='buku', lazy=True)
     ratings = db.relationship('Rating', backref='buku', lazy=True)
 

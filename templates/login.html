@@ -1,32 +1,33 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<div class="row justify-content-center">
+<div class="row justify-content-center mt-5">
     <div class="col-md-5">
-        <h3 class="mb-4">Login</h3>
-        <form method="POST" autocomplete="off">
-            <div class="mb-3">
-                <label>Username</label>
-                <input type="text" name="username" class="form-control" required>
-            </div>
-            <div class="mb-3">
-                <label>Password</label>
-                <div class="input-group">
-                    <input type="password" name="password" id="passwordInput" class="form-control" required>
-                    <button type="button" class="btn btn-outline-secondary"
-                        onclick="togglePassword('passwordInput', this)">
-                        👁️
-                    </button>
+        <div class="card p-4 shadow-sm border-0">
+            <h3 class="mb-4 fw-bold text-center">Login</h3>
+
+            <form method="POST" autocomplete="off">
+                <div class="mb-3">
+                    <label>Username</label>
+                    <input type="text" name="username" class="form-control" required>
                 </div>
+                <div class="mb-3">
+                    <label>Password</label>
+                    <div class="input-group">
+                        <input type="password" name="password" id="passwordInput" class="form-control" required>
+                        <button type="button" class="btn btn-outline-secondary"
+                            onclick="togglePassword('passwordInput', this)">👁️</button>
+                    </div>
+                </div>
+                <button type="submit" class="btn btn-primary w-100 py-2 fw-bold mt-2">Login</button>
+            </form>
+
+            <div class="text-center mt-4">
+                <p class="mb-1">Belum punya akun? <a href="/register" class="text-decoration-none fw-bold">Register</a>
+                </p>
+                <a href="/lupa-password" class="text-muted small text-decoration-none">Lupa password?</a>
             </div>
-            <button type="submit" class="btn btn-primary w-100">Login</button>
-        </form>
-        <p class="mt-3 text-center">
-            Belum punya akun? <a href="/register">Register di sini</a>
-        </p>
-        <p class="text-center">
-            <a href="/lupa-password">Lupa password?</a>
-        </p>
+        </div>
     </div>
 </div>
 
