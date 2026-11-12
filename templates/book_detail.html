@@ -50,7 +50,8 @@
             <button class="btn btn-secondary px-4 py-2" disabled>Stok Habis</button>
             {% endif %}
 
-            {% if buku.file_pdf %}
+            <!-- PERUBAHAN DI SINI: Tombol Baca PDF hanya muncul jika stok > 0 ATAU user sedang meminjam buku ini -->
+            {% if buku.file_pdf and (buku.stok_tersedia > 0 or sedang_dipinjam) %}
             <a href="/baca/{{ buku.id }}" class="btn btn-info text-white px-4 py-2 fw-bold">📄 Baca PDF</a>
             {% endif %}
 

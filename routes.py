@@ -54,7 +54,14 @@ def detail_buku(buku_id):
     buku = Buku.query.get_or_404(buku_id)
     ratings = Rating.query.filter_by(buku_id=buku_id).all()
     rata_rata = sum(r.bintang for r in ratings) / len(ratings) if ratings else 0
-    return render_template('book_detail.html', buku=buku, ratings=ratings, rata_rata=rata_rata)
+
+    #cek apakah user saat ini sdg meminjam buku
+    sedang_dipinjam = False
+    if current_user.is_authenticated:
+        cek = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
+        if cek:
+            sedang_dipinjam = True
+    return render_template('book_detail.html', buku=buku, ratings=ratings, rata_rata=rata_rata, sedang_dipinjam=sedang_dipinjam)
 
 #---------- REGISTER ------------
 @app.route('/register', methods=['GET', 'POST'])
@@ -142,7 +149,7 @@ def dashboard():
     peminjaman = Peminjaman.query.filter_by(user_id=current_user.id).order_by(
         Peminjaman.tanggal_pinjam.desc()
     ).all()
-    return render_template('dashboard.html', peminjaman=peminjaman)
+    return render_template('dashboard.html', peminjaman=peminjaman, now=datetime.utcnow())
 
 # ---------- KEMBALIKAN BUKU ----------
 @app.route('/kembalikan/<int:peminjaman_id>', methods=['POST'])
@@ -268,6 +275,14 @@ def baca_buku(buku_id):
 
     if not buku.file_pdf:
         flash('File PDF untuk buku ini belum tersedia.', 'warning')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+
+    # Cek apakah user sedang meminjam buku ini
+    sedang_dipinjam = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
+
+    # JIKA stok habis DAN user tidak sedang meminjam, tolak akses
+    if buku.stok_tersedia <= 0 and not sedang_dipinjam:
+        flash('Stok buku sedang habis. Anda harus meminjam untuk membacanya.', 'danger')
         return redirect(url_for('detail_buku', buku_id=buku_id))
 
     return render_template('baca_pdf.html', buku=buku)
