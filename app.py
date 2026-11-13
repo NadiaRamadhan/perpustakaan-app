@@ -4,7 +4,7 @@ from flask_login import LoginManager
 from models import db, User
 
 app = Flask(__name__)
-app.config['SECRET_KEY'] = 'ganti-dengan-string-rahasia-panjang'
+app.config['SECRET_KEY'] = os.environ.get('SECRET_KEY', '0db11139f2e39574274875c542bedd1ee8679acadea53e25e03916c48542161f')
 
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///' + os.path.join(basedir, 'perpustakaan.db')
@@ -29,7 +29,7 @@ def add_header(response):
     return response
     
 from routes import *
-if __name__ == '_main_':
+if __name__ == '__main__':
     with app.app_context():
         db.create_all()   #buat tabel otmts
         #render akan memberikan port otmts, kl di lptp ttp 5000

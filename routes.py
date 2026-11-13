@@ -255,7 +255,7 @@ def tambah_buku():
         return redirect(url_for('index'))
     return render_template('tambah_buku.html')
 
-    # ---------- CETAK STRUK ----------
+# ---------- CETAK STRUK ----------
 @app.route('/struk/<int:peminjaman_id>')
 @login_required
 def cetak_struk(peminjaman_id):
@@ -267,7 +267,7 @@ def cetak_struk(peminjaman_id):
 
     return render_template('struk.html', p=peminjaman)
 
-    # ---------- BACA PDF ----------
+# ---------- BACA PDF ----------
 @app.route('/baca/<int:buku_id>')
 @login_required
 def baca_buku(buku_id):
@@ -287,7 +287,7 @@ def baca_buku(buku_id):
 
     return render_template('baca_pdf.html', buku=buku)
 
-    # ---------- ADMIN: HAPUS BUKU ----------
+# ---------- ADMIN: HAPUS BUKU ----------
 @app.route('/admin/hapus-buku/<int:buku_id>', methods=['POST'])
 @login_required
 def hapus_buku(buku_id):
@@ -312,7 +312,7 @@ def hapus_buku(buku_id):
     flash(f'Buku "{buku.judul}" berhasil dihapus.', 'success')
     return redirect(url_for('index'))
 
-    # ---------- GANTI PASSWORD ----------
+# ---------- GANTI PASSWORD ----------
 @app.route('/ganti-password', methods=['GET', 'POST'])
 @login_required
 def ganti_password():
