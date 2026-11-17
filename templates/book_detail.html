@@ -1,46 +1,32 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<!-- Kartu Utama Detail Buku -->
 <div class="card p-4 mb-4" style="border-radius: 15px; border: 1px solid #eaeaea;">
     <div class="row">
-
-        <!-- Kolom Kiri: Gambar Cover -->
         <div class="col-md-4 mb-4 mb-md-0 text-center">
             {% if buku.cover %}
-            <img src="/static/uploads/cover/{{ buku.cover }}" class="img-fluid rounded shadow" alt="{{ buku.judul }}"
-                style="width: 100%; max-height: 450px; object-fit: cover;">
+            <img src="/static/uploads/cover/{{ buku.cover }}" class="img-fluid rounded shadow"
+                style="max-height: 450px; object-fit: cover;">
             {% else %}
             <div class="d-flex align-items-center justify-content-center bg-light rounded shadow"
-                style="height: 400px; font-size: 80px; color: #ccc;">
-                📖
-            </div>
+                style="height: 400px; font-size: 80px; color: #ccc;">📖</div>
             {% endif %}
         </div>
 
-        <!-- Kolom Kanan: Informasi Buku -->
         <div class="col-md-8">
             <a href="/" class="btn btn-sm btn-outline-secondary mb-3">← Kembali ke Katalog</a>
-
             <h2 class="fw-bold mb-1">{{ buku.judul }}</h2>
             <p class="text-muted mb-2">oleh <strong>{{ buku.penulis }}</strong></p>
             <span class="badge bg-primary mb-3">{{ buku.kategori }}</span>
-
             <p class="lh-lg">{{ buku.deskripsi }}</p>
 
             <div class="d-flex gap-4 mb-4 p-3 bg-light rounded">
-                <div>
-                    <small class="text-muted d-block">Ketersediaan Stok</small>
-                    <strong>{{ buku.stok_tersedia }} / {{ buku.stok_total }}</strong>
-                </div>
-                <div>
-                    <small class="text-muted d-block">Rating Pembaca</small>
-                    <strong>⭐ {{ "%.1f"|format(rata_rata) }} <span class="text-muted fw-normal">({{ ratings|length }}
-                            ulasan)</span></strong>
-                </div>
+                <div><small class="text-muted d-block">Stok</small><strong>{{ buku.stok_tersedia }} / {{ buku.stok_total
+                        }}</strong></div>
+                <div><small class="text-muted d-block">Rating</small><strong>⭐ {{ "%.1f"|format(rata_rata) }} ({{
+                        ratings|length }} ulasan)</strong></div>
             </div>
 
-            <!-- Tombol Aksi -->
             {% if current_user.is_authenticated %}
             {% if buku.stok_tersedia > 0 %}
             <form method="POST" action="/pinjam/{{ buku.id }}" style="display:inline;">
@@ -50,9 +36,15 @@
             <button class="btn btn-secondary px-4 py-2" disabled>Stok Habis</button>
             {% endif %}
 
-            <!-- PERUBAHAN DI SINI: Tombol Baca PDF hanya muncul jika stok > 0 ATAU user sedang meminjam buku ini -->
-            {% if buku.file_pdf and (buku.stok_tersedia > 0 or sedang_dipinjam) %}
+            <!-- TOMBOL BACA: Muncul kalau stok ada, ATAU user sudah pinjam -->
+            {% if buku.file_pdf and (buku.stok_tersedia > 0 or sudah_pinjam) %}
             <a href="/baca/{{ buku.id }}" class="btn btn-info text-white px-4 py-2 fw-bold">📄 Baca PDF</a>
+            {% endif %}
+
+            <!-- TOMBOL DOWNLOAD: Hanya muncul kalau user sudah pinjam -->
+            {% if buku.file_pdf and sudah_pinjam %}
+            <a href="/static/uploads/pdf/{{ buku.file_pdf }}" download
+                class="btn btn-outline-primary px-4 py-2 fw-bold">⬇️ Download PDF</a>
             {% endif %}
 
             {% if current_user.role == 'admin' %}
@@ -63,32 +55,30 @@
             </form>
             {% endif %}
             {% else %}
-            <div class="alert alert-warning">
-                Silakan <a href="/login" class="fw-bold">Login</a> terlebih dahulu untuk meminjam buku ini.
+            <div class="alert alert-warning">Silakan <a href="/login" class="fw-bold">Login</a> untuk meminjam buku ini.
             </div>
             {% endif %}
         </div>
     </div>
 </div>
 
-<!-- Bagian Ulasan Pembaca -->
 <h4 class="mt-5 mb-3 fw-bold">Ulasan Pembaca</h4>
 <div class="row">
     {% for r in ratings %}
     <div class="col-md-6 mb-3">
-        <div class="card h-100">
+        <div class="card h-100 border-0 shadow-sm">
             <div class="card-body">
                 <div class="d-flex justify-content-between mb-2">
                     <span class="fw-bold text-primary">{{ r.user.username }}</span>
                     <span class="text-warning">⭐ {{ r.bintang }}/5</span>
                 </div>
-                <p class="card-text text-muted mb-0">"{{ r.ulasan }}"</p>
+                <p class="text-muted mb-0">"{{ r.ulasan }}"</p>
             </div>
         </div>
     </div>
     {% else %}
     <div class="col-12">
-        <div class="alert alert-light border">Belum ada ulasan untuk buku ini. Pinjam dan berikan ulasanmu!</div>
+        <div class="alert alert-light border">Belum ada ulasan.</div>
     </div>
     {% endfor %}
 </div>

@@ -54,15 +54,32 @@ def detail_buku(buku_id):
     buku = Buku.query.get_or_404(buku_id)
     ratings = Rating.query.filter_by(buku_id=buku_id).all()
     rata_rata = sum(r.bintang for r in ratings) / len(ratings) if ratings else 0
-
-    #cek apakah user saat ini sdg meminjam buku
-    sedang_dipinjam = False
+    
+    # CEK: Apakah user ini sedang meminjam buku ini?
+    sudah_pinjam = False
     if current_user.is_authenticated:
         cek = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
         if cek:
-            sedang_dipinjam = True
-    return render_template('book_detail.html', buku=buku, ratings=ratings, rata_rata=rata_rata, sedang_dipinjam=sedang_dipinjam)
+            sudah_pinjam = True
 
+    return render_template('book_detail.html', buku=buku, ratings=ratings, rata_rata=rata_rata, sudah_pinjam=sudah_pinjam)
+
+@app.route('/baca/<int:buku_id>')
+@login_required
+def baca_buku(buku_id):
+    buku = Buku.query.get_or_404(buku_id)
+    if not buku.file_pdf:
+        flash('File PDF belum tersedia.', 'warning')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+        
+    # Cek juga di sini, untuk ngasih tahu tombol download di halaman baca
+    sudah_pinjam = False
+    cek = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
+    if cek:
+        sudah_pinjam = True
+
+    return render_template('baca_pdf.html', buku=buku, sudah_pinjam=sudah_pinjam)
+    
 #---------- REGISTER ------------
 @app.route('/register', methods=['GET', 'POST'])
 def register():
@@ -267,25 +284,6 @@ def cetak_struk(peminjaman_id):
 
     return render_template('struk.html', p=peminjaman)
 
-# ---------- BACA PDF ----------
-@app.route('/baca/<int:buku_id>')
-@login_required
-def baca_buku(buku_id):
-    buku = Buku.query.get_or_404(buku_id)
-
-    if not buku.file_pdf:
-        flash('File PDF untuk buku ini belum tersedia.', 'warning')
-        return redirect(url_for('detail_buku', buku_id=buku_id))
-
-    # Cek apakah user sedang meminjam buku ini
-    sedang_dipinjam = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
-
-    # JIKA stok habis DAN user tidak sedang meminjam, tolak akses
-    if buku.stok_tersedia <= 0 and not sedang_dipinjam:
-        flash('Stok buku sedang habis. Anda harus meminjam untuk membacanya.', 'danger')
-        return redirect(url_for('detail_buku', buku_id=buku_id))
-
-    return render_template('baca_pdf.html', buku=buku)
 
 # ---------- ADMIN: HAPUS BUKU ----------
 @app.route('/admin/hapus-buku/<int:buku_id>', methods=['POST'])
@@ -539,3 +537,42 @@ def edit_buku(buku_id):
         return redirect(url_for('detail_buku', buku_id=buku.id))
 
     return render_template('edit_buku.html', buku=buku)
+
+# ---------- DOWNLOAD PDF (Hanya untuk yang pernah pinjam) ----------
+@app.route('/download/<int:buku_id>')
+@login_required
+def download_pdf(buku_id):
+    buku = Buku.query.get_or_404(buku_id)
+    
+    if not buku.file_pdf:
+        flash('File PDF tidak tersedia.', 'warning')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+
+    # Cek apakah user pernah meminjam buku ini
+    pernah_dipinjam = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id).first()
+    
+    if not pernah_dipinjam:
+        flash('Anda harus meminjam buku ini terlebih dahulu untuk mengunduhnya.', 'danger')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+
+    # Kalau aman, kirim filenya
+    return send_from_directory(app.config['UPLOAD_FOLDER'], buku.file_pdf, as_attachment=True, download_name=f"{buku.judul}.pdf")
+
+# ---------- LIHAT PDF DI DALAM BROWSER (Aman) ----------
+@app.route('/view_pdf/<int:buku_id>')
+@login_required
+def view_pdf(buku_id):
+    buku = Buku.query.get_or_404(buku_id)
+
+    if not buku.file_pdf:
+        flash('File PDF tidak tersedia.', 'warning')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+
+    # Cek izin baca (Stok ada ATAU sedang dipinjam)
+    sedang_dipinjam = Peminjaman.query.filter_by(user_id=current_user.id, buku_id=buku_id, status='dipinjam').first()
+    if buku.stok_tersedia <= 0 and not sedang_dipinjam:
+        flash('Stok buku habis. Anda harus meminjam untuk membacanya.', 'danger')
+        return redirect(url_for('detail_buku', buku_id=buku_id))
+
+    # Tampilkan PDF langsung di browser (inline), JANGAN didownload
+    return send_from_directory(app.config['UPLOAD_FOLDER'], buku.file_pdf, mimetype='application/pdf')

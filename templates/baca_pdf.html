@@ -8,7 +8,11 @@
     </div>
     <div>
         <a href="/buku/{{ buku.id }}" class="btn btn-outline-secondary btn-sm">← Detail</a>
+
+        <!-- Tombol Download hanya muncul kalau SUDAH PINJAM -->
+        {% if sudah_pinjam %}
         <a href="/static/uploads/pdf/{{ buku.file_pdf }}" download class="btn btn-primary btn-sm">⬇️ Download PDF</a>
+        {% endif %}
     </div>
 </div>
 
